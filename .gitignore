@@ -1,0 +1,13 @@
+# CSV files
+*.csv
+
+# Cache directories
+cache/images/*
+cache/pages/*
+
+# Keep cache directories but ignore contents
+!cache/images/.gitkeep
+!cache/pages/.gitkeep
+
+# Requirements hash file
+.requirements.hash

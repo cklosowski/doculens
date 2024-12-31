@@ -1,0 +1,9 @@
+requests
+beautifulsoup4
+Pillow
+numpy
+opencv-python-headless
+scikit-image
+pytesseract
+defusedxml
+tqdm
