@@ -1,6 +1,6 @@
-# Documentation Image Scanner
+# DocuLens
 
-This tool scans documentation websites using their sitemap and searches for specific images based on OCR text recognition, image URLs, and alt text. It's particularly useful for finding and tracking documentation screenshots that need updating.
+DocuLens is a powerful documentation image scanner that helps you find and track documentation screenshots that need updating. Using advanced OCR technology and smart caching, it efficiently scans your documentation website and identifies images based on their content, URLs, and alt text.
 
 ## Features
 
@@ -22,7 +22,10 @@ This tool scans documentation websites using their sitemap and searches for spec
   - Skips SVG images automatically
 - Dockerized for easy setup and use
 - Supports multiple search terms
-- Outputs results to CSV
+- Test mode for quick validation:
+  - Randomly samples 5 pages
+  - Outputs results directly to screen
+- Outputs results to CSV (in non-test mode)
 
 ## Prerequisites
 
@@ -36,7 +39,7 @@ That's all you need! Everything else is handled by the Docker container.
 1. Clone this repository:
 ```bash
 git clone [repository-url]
-cd docslist
+cd doculens
 ```
 
 2. Make the run script executable:
@@ -53,7 +56,24 @@ Run with required arguments:
 ./run.sh --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
 ```
 
-### Custom Usage
+### Quick Testing
+
+Test mode (randomly samples 5 pages and outputs results to screen):
+```bash
+./run.sh --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --test
+```
+
+Example test output:
+```
+Test Results:
+================================================================================
+page_url,image_url,matched_term
+docs/setup-guide,https://example.com/images/settings.png,Settings
+docs/metabox,https://example.com/images/meta-options.jpg,Metabox
+================================================================================
+```
+
+### Advanced Usage
 
 Multiple search terms:
 ```bash
@@ -76,7 +96,8 @@ Full example with all options:
   --sitemap "https://docs.example.com/sitemap.xml" \
   --search-terms "Setup Guide" "Configuration" "API Settings" \
   --clear-cache \
-  --output "documentation_audit.csv"
+  --output "documentation_audit.csv" \
+  --test
 ```
 
 ## Output Format

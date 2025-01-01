@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import queue
 import threading
+import random
 
 CACHE_DIR = Path('cache/images')
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -168,7 +169,7 @@ def process_image(args):
             }
     return None
 
-def find_similar_images(sitemap_url, search_strings=None):
+def find_similar_images(sitemap_url, search_strings=None, test_mode=False):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
         'Accept': 'text/html,application/xml,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -201,7 +202,31 @@ def find_similar_images(sitemap_url, search_strings=None):
             return []
 
     # Get all URLs first
-    urls = root.findall('.//{http://www.sitemaps.org/schemas/sitemap/0.9}loc')
+    all_urls = root.findall('.//{http://www.sitemaps.org/schemas/sitemap/0.9}loc')
+
+    if test_mode:
+        # Initialize variables for test mode
+        urls_to_process = []
+        pages_with_matches = set()
+        pages_tried = set()
+        max_test_pages = 20
+
+        # Keep trying random pages until we find 5 with matches or hit the limit
+        while len(pages_with_matches) < 5 and len(pages_tried) < max_test_pages and len(pages_tried) < len(all_urls):
+            # Get a random page we haven't tried yet
+            available_urls = [url for url in all_urls if url.text not in pages_tried]
+            if not available_urls:
+                break
+
+            url = random.choice(available_urls)
+            pages_tried.add(url.text)
+            urls_to_process.append(url)
+
+        urls = urls_to_process
+        print(f"\nTest mode: Trying up to {max_test_pages} random pages to find 5 with matches...")
+    else:
+        urls = all_urls
+
     total_urls = len(urls)
 
     # Restore stdout for progress bar
@@ -231,14 +256,12 @@ def find_similar_images(sitemap_url, search_strings=None):
         """Format URL to remove hostname but keep full path"""
         from urllib.parse import urlparse
         parsed = urlparse(url)
-        # Keep the full path without modifying it
         path = parsed.path
         if path.startswith('/'):
-            path = path[1:]  # Remove leading slash
-        # If there's a query string, add it back
+            path = path[1:]
         if parsed.query:
             path = f"{path}?{parsed.query}"
-        return path[:100]  # Still limit length to prevent overflow
+        return path[:100]
 
     def update_status(page_url, page_cached):
         """Update status bar with current progress"""
@@ -263,57 +286,73 @@ def find_similar_images(sitemap_url, search_strings=None):
                         cache_page(page_url, page_content)
 
                     soup = BeautifulSoup(page_content, 'html.parser')
-                    entry_content = soup.find('div', class_='entry-content')
 
-                    if not entry_content:
-                        pbar.update(1)
-                        continue
-
-                    # Submit all images from this page to the thread pool
+                    # Process all images on the page
                     future_to_img = {
                         executor.submit(process_image, (page_url, img, search_strings)): img
-                        for img in entry_content.find_all('img')
+                        for img in soup.find_all('img')
                     }
 
                     # Process completed futures
+                    page_has_matches = False
                     for future in as_completed(future_to_img):
                         result = future.result()
                         if result:
                             matching_images.append(result)
+                            page_has_matches = True
+                            if test_mode:
+                                pages_with_matches.add(page_url)
+
+                    if test_mode and len(pages_with_matches) >= 5:
+                        break
 
                 except Exception as e:
                     print(f"\nError processing {page_url}: {str(e)}", file=sys.stderr)
                 finally:
                     pbar.update(1)
-                    # Reset image status when done with page
                     update_status(page_url, page_cached)
 
         finally:
-            # Clear status bars before closing
             page_status.clear()
             pbar.close()
             page_status.close()
 
-    print(f"\nFound {len(matching_images)} matching images")
+    if test_mode:
+        if not matching_images:
+            print(f"\nNo matching images found in {len(pages_tried)} randomly sampled pages")
+        else:
+            print(f"\nFound matches in {len(pages_with_matches)} of {len(pages_tried)} pages sampled")
+    else:
+        print(f"\nFound {len(matching_images)} matching images")
+
     return matching_images
 
-def save_to_csv(matching_images, output_file='matching_images.csv'):
-    """Save the matching images results to a CSV file"""
+def save_to_csv(matching_images, output_file='matching_images.csv', test_mode=False):
+    """Save the matching images results to a CSV file or print to screen in test mode"""
     if not matching_images:
-        print("No matching images found to save")
+        print("No matching images found")
         return
 
     # Define the CSV headers
-    fieldnames = ['page_url', 'image_url', 'alt_text', 'ocr_text', 'matched_term']
+    fieldnames = ['page_url', 'image_url', 'matched_term']
 
-    try:
-        with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(matching_images)
-        print(f"Results saved to {output_file}")
-    except Exception as e:
-        print(f"Error saving CSV: {e}")
+    if test_mode:
+        # Print CSV format to screen
+        print("\nTest Results:")
+        print("=" * 80)
+        print(",".join(fieldnames))
+        for image in matching_images:
+            print(f"{image['page_url']},{image['image_url']},{image['matched_term']}")
+        print("=" * 80)
+    else:
+        try:
+            with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(matching_images)
+            print(f"Results saved to {output_file}")
+        except Exception as e:
+            print(f"Error saving CSV: {e}")
 
 def clear_image_cache():
     """Clear the image cache directory"""
@@ -349,11 +388,14 @@ def main():
                        help='Clear all caches before running')
     parser.add_argument('--output',
                        default='matching_images.csv',
-                       help='Output CSV file path')
+                       help='Output CSV file path (ignored in test mode)')
     parser.add_argument('--workers',
                        type=int,
                        default=3,
                        help='Number of concurrent image processors (default: 3)')
+    parser.add_argument('--test',
+                       action='store_true',
+                       help='Test mode: randomly samples 5 pages and outputs to screen')
 
     args = parser.parse_args()
 
@@ -365,9 +407,10 @@ def main():
 
     matching_images = find_similar_images(
         args.sitemap,
-        search_strings=args.search_terms
+        search_strings=args.search_terms,
+        test_mode=args.test
     )
-    save_to_csv(matching_images, args.output)
+    save_to_csv(matching_images, args.output, test_mode=args.test)
 
 if __name__ == "__main__":
     main()

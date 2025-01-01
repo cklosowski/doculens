@@ -4,8 +4,3 @@ services:
     volumes:
       - .:/app
     user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
-
-volumes:
-  docs_scanner_cache:
-    name: docs_scanner_cache
-    external: true
