@@ -1,6 +1,6 @@
-# DocuLens
+# DocuScout
 
-DocuLens is a powerful documentation image scanner that helps you find and track documentation screenshots that need updating. Using advanced OCR technology and smart caching, it efficiently scans your documentation website and identifies images based on their content, URLs, and alt text.
+DocuScout is a powerful documentation image scanner that helps you find and track documentation screenshots that need updating. Using advanced OCR technology and smart caching, it efficiently scans your documentation website and identifies images based on their content, URLs, and alt text.
 
 ## Features
 
@@ -39,38 +39,38 @@ That's all you need! Everything else is handled by the Docker container.
 1. Clone this repository:
 ```bash
 git clone [repository-url]
-cd doculens
+cd docuscout
 ```
 
 2. Make the script executable:
 ```bash
-chmod +x doculens
+chmod +x docuscout
 ```
 
-### Optional: Make DocuLens Globally Accessible
+### Optional: Make DocuScout Globally Accessible
 
-You can make DocuLens accessible from anywhere on your system by following these steps:
+You can make DocuScout accessible from anywhere on your system by following these steps:
 
-1. First, get the absolute path to your DocuLens installation:
+1. First, get the absolute path to your DocuScout installation:
 ```bash
-cd /path/to/doculens  # Navigate to where you cloned the repository
-DOCULENS_PATH=$(pwd)/doculens
+cd /path/to/docuscout  # Navigate to where you cloned the repository
+DOCUSCOUT_PATH=$(pwd)/docuscout
 ```
 
 2. Create a symbolic link in `/usr/local/bin`:
 ```bash
-sudo ln -s "$DOCULENS_PATH" /usr/local/bin/doculens
+sudo ln -s "$DOCUSCOUT_PATH" /usr/local/bin/docuscout
 ```
 
-Now you can run DocuLens from any directory using just:
+Now you can run DocuScout from any directory using just:
 ```bash
-doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
+docuscout --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
 ```
 
 Notes:
 - Make sure to use absolute paths when creating the symbolic link
-- If you move the DocuLens directory after creating the symbolic link, you'll need to update the link
-- You can check where the symlink points to with: `ls -l /usr/local/bin/doculens`
+- If you move the DocuScout directory after creating the symbolic link, you'll need to update the link
+- You can check where the symlink points to with: `ls -l /usr/local/bin/docuscout`
 
 ## Usage
 
@@ -78,18 +78,18 @@ Notes:
 
 Run with required arguments:
 ```bash
-./doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
+./docuscout --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
 ```
 Or if installed globally:
 ```bash
-doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
+docuscout --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
 ```
 
 ### Quick Testing
 
 Test mode (randomly samples 5 pages and outputs results to screen):
 ```bash
-doculens --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --test
+docuscout --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --test
 ```
 
 Example test output:
@@ -106,22 +106,22 @@ docs/metabox,https://example.com/images/meta-options.jpg,Metabox
 
 Multiple search terms:
 ```bash
-doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Download Button" "Settings Panel" "Configuration"
+docuscout --sitemap "https://example.com/sitemap.xml" --search-terms "Download Button" "Settings Panel" "Configuration"
 ```
 
 With cache clearing:
 ```bash
-doculens --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --clear-cache
+docuscout --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --clear-cache
 ```
 
 With custom output file:
 ```bash
-doculens --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Feature" "Setup" --output "my_results.csv"
+docuscout --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Feature" "Setup" --output "my_results.csv"
 ```
 
 Full example with all options:
 ```bash
-doculens \
+docuscout \
   --sitemap "https://docs.example.com/sitemap.xml" \
   --search-terms "Setup Guide" "Configuration" "API Settings" \
   --clear-cache \
@@ -164,7 +164,7 @@ The tool uses a two-level caching system:
 
 Clear all caches:
 ```bash
-doculens --clear-cache
+docuscout --clear-cache
 ```
 
 ## Progress Display
