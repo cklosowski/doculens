@@ -42,10 +42,35 @@ git clone [repository-url]
 cd doculens
 ```
 
-2. Make the run script executable:
+2. Make the script executable:
 ```bash
-chmod +x run.sh
+chmod +x doculens
 ```
+
+### Optional: Make DocuLens Globally Accessible
+
+You can make DocuLens accessible from anywhere on your system by following these steps:
+
+1. First, get the absolute path to your DocuLens installation:
+```bash
+cd /path/to/doculens  # Navigate to where you cloned the repository
+DOCULENS_PATH=$(pwd)/doculens
+```
+
+2. Create a symbolic link in `/usr/local/bin`:
+```bash
+sudo ln -s "$DOCULENS_PATH" /usr/local/bin/doculens
+```
+
+Now you can run DocuLens from any directory using just:
+```bash
+doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
+```
+
+Notes:
+- Make sure to use absolute paths when creating the symbolic link
+- If you move the DocuLens directory after creating the symbolic link, you'll need to update the link
+- You can check where the symlink points to with: `ls -l /usr/local/bin/doculens`
 
 ## Usage
 
@@ -53,14 +78,18 @@ chmod +x run.sh
 
 Run with required arguments:
 ```bash
-./run.sh --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
+./doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
+```
+Or if installed globally:
+```bash
+doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Term1" "Term2"
 ```
 
 ### Quick Testing
 
 Test mode (randomly samples 5 pages and outputs results to screen):
 ```bash
-./run.sh --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --test
+doculens --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --test
 ```
 
 Example test output:
@@ -77,22 +106,22 @@ docs/metabox,https://example.com/images/meta-options.jpg,Metabox
 
 Multiple search terms:
 ```bash
-./run.sh --sitemap "https://example.com/sitemap.xml" --search-terms "Download Button" "Settings Panel" "Configuration"
+doculens --sitemap "https://example.com/sitemap.xml" --search-terms "Download Button" "Settings Panel" "Configuration"
 ```
 
 With cache clearing:
 ```bash
-./run.sh --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --clear-cache
+doculens --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Metabox" "Settings" --clear-cache
 ```
 
 With custom output file:
 ```bash
-./run.sh --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Feature" "Setup" --output "my_results.csv"
+doculens --sitemap "https://docs.example.com/sitemap.xml" --search-terms "Feature" "Setup" --output "my_results.csv"
 ```
 
 Full example with all options:
 ```bash
-./run.sh \
+doculens \
   --sitemap "https://docs.example.com/sitemap.xml" \
   --search-terms "Setup Guide" "Configuration" "API Settings" \
   --clear-cache \
@@ -135,7 +164,7 @@ The tool uses a two-level caching system:
 
 Clear all caches:
 ```bash
-./run.sh --clear-cache
+doculens --clear-cache
 ```
 
 ## Progress Display
